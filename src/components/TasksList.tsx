@@ -1,10 +1,11 @@
-import React from 'react';
-import { FlatList, Image, TouchableOpacity, View, Text, StyleSheet, FlatListProps } from 'react-native';
+import React, { useState } from 'react';
+import { FlatList, Image, TouchableOpacity, View, Text, StyleSheet, FlatListProps, TextInput } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
 
 import { ItemWrapper } from './ItemWrapper';
 
 import trashIcon from '../assets/icons/trash/trash.png'
+import editIcon from '../assets/icons/edit/edit.png'
 
 export interface Task {
   id: number;
@@ -16,9 +17,29 @@ interface TasksListProps {
   tasks: Task[];
   toggleTaskDone: (id: number) => void;
   removeTask: (id: number) => void;
+  editTask: (id: number, newTaskTitle: string) => void;
 }
 
-export function TasksList({ tasks, toggleTaskDone, removeTask }: TasksListProps) {
+export function TasksList({ tasks, toggleTaskDone, removeTask, editTask }: TasksListProps) {
+
+  const [idEditing, setIdEditing] = useState<number>()
+  const [newTaskTitle, setNewTaskTitle] = useState('')
+
+  const activeEditing = (id: number, oldTaskTitle: string) => {
+    setNewTaskTitle(oldTaskTitle)
+    setIdEditing(id)
+  }
+  const cancelEditing = (id: number) => {
+    setNewTaskTitle('')
+    setIdEditing(undefined)
+  }
+
+  const confirmTitle = () => {
+    setNewTaskTitle(newTaskTitle)
+    if (idEditing !== undefined) editTask(idEditing, newTaskTitle)
+    setIdEditing(undefined)
+  }
+
   return (
     <FlatList
       data={tasks}
@@ -29,44 +50,76 @@ export function TasksList({ tasks, toggleTaskDone, removeTask }: TasksListProps)
         return (
           <ItemWrapper index={index}>
             <View>
-              <TouchableOpacity
-                style={styles.taskButton}
-                testID={`button-${index}`}
-                activeOpacity={0.7}
-                onPress={() => toggleTaskDone(item.id)}
-              //TODO - use onPress (toggle task) prop
-              >
-                <View
-                  testID={`marker-${index}`}
-                  style={item.done ? styles.taskMarkerDone : styles.taskMarker}
-                //TODO - use style prop 
+              {
+                idEditing !== item.id ? (
+                  <TouchableOpacity
+                    style={styles.taskButton}
+                    testID={`button-${index}`}
+                    activeOpacity={0.7}
+                    onPress={() => toggleTaskDone(item.id)}
+                  //TODO - use onPress (toggle task) prop
+                  >
+                    <View
+                      testID={`marker-${index}`}
+                      style={item.done ? styles.taskMarkerDone : styles.taskMarker}
+                    //TODO - use style prop 
+                    >
+                      {item.done && (
+                        <Icon
+                          name="check"
+                          size={12}
+                          color="#FFF"
+                        />
+                      )}
+                    </View>
+                    <Text
+                      style={item.done ? styles.taskTextDone : styles.taskText}
+                    //TODO - use style prop
+                    >
+                      {item.title}
+                    </Text>
+                  </TouchableOpacity>
+                )
+                  :
+                  <TextInput
+                    value={newTaskTitle}
+                    onChangeText={setNewTaskTitle}
+                    onSubmitEditing={confirmTitle}
+                  />
+              }
+            </View>
+            <View
+              style={{ flexDirection: 'row' }}
+              testID={`actionsContainer-${index}`}
+            >
+              {idEditing !== item.id ?
+                <TouchableOpacity
+                  style={styles.actionIcon}
+                  onPress={() => activeEditing(item.id, item.title)}
+                //TODO - use onPress (remove task) prop
                 >
-                  {item.done && (
-                    <Icon
-                      name="check"
-                      size={12}
-                      color="#FFF"
-                    />
-                  )}
-                </View>
+                  <Image source={editIcon} />
+                </TouchableOpacity>
+                :
+                <TouchableOpacity
+                  style={styles.actionIcon}
+                  onPress={() => cancelEditing(item.id)}
+                //TODO - use onPress (remove task) prop
+                >
+                  <Icon name="x" size={24} color="#b2b2b2" />
+                </TouchableOpacity>
+              }
+              <View style={styles.separator} />
 
-                <Text
-                  style={item.done ? styles.taskTextDone : styles.taskText}
-                //TODO - use style prop
-                >
-                  {item.title}
-                </Text>
+              <TouchableOpacity
+                onPress={() => removeTask(item.id)}
+                style={styles.actionIcon}
+
+              //TODO - use onPress (remove task) prop
+              >
+                <Image source={trashIcon} style={{ opacity: idEditing === item.id ? 0.2 : 1 }} />
               </TouchableOpacity>
             </View>
-
-            <TouchableOpacity
-              testID={`trash-${index}`}
-              style={{ paddingHorizontal: 24 }}
-              onPress={() => removeTask(item.id)}
-            //TODO - use onPress (remove task) prop
-            >
-              <Image source={trashIcon} />
-            </TouchableOpacity>
           </ItemWrapper>
         )
       }}
@@ -114,5 +167,13 @@ const styles = StyleSheet.create({
     color: '#1DB863',
     textDecorationLine: 'line-through',
     fontFamily: 'Inter-Medium'
+  },
+  separator: {
+    width: 1,
+    height: 24,
+    backgroundColor: 'rgba(196, 196, 196, 0.24)'
+  },
+  actionIcon: {
+    paddingHorizontal: 12
   }
 })
