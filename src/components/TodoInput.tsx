@@ -2,15 +2,23 @@ import React, { useState } from 'react';
 import { StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
 
-interface TodoInputProps {
-  addTask: (task: string) => void;
+export interface Task {
+  id: number;
+  title: string;
+  done: boolean;
 }
 
-export function TodoInput({ addTask }: TodoInputProps) {
+interface TodoInputProps {
+  addTask: (task: string) => void;
+  verifyTaskTitle: (task: string, tasks: Task[]) => boolean;
+  tasks: Task[];
+}
+
+export function TodoInput({ addTask, verifyTaskTitle, tasks }: TodoInputProps) {
   const [task, setTask] = useState('');
 
   function handleAddNewTask() {
-    if (task && task !== '') {
+    if (task && task !== '' && !verifyTaskTitle(task, tasks)) {
       addTask(task)
       setTask('');
     }

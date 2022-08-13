@@ -18,9 +18,10 @@ interface TasksListProps {
   toggleTaskDone: (id: number) => void;
   removeTask: (id: number) => void;
   editTask: (id: number, newTaskTitle: string) => void;
+  verifyTaskTitle: (newTaskTitle: string, tasks: Task[]) => boolean;
 }
 
-export function TasksList({ tasks, toggleTaskDone, removeTask, editTask }: TasksListProps) {
+export function TasksList({ tasks, toggleTaskDone, removeTask, editTask, verifyTaskTitle }: TasksListProps) {
 
   const [idEditing, setIdEditing] = useState<number>()
   const [newTaskTitle, setNewTaskTitle] = useState('')
@@ -36,7 +37,7 @@ export function TasksList({ tasks, toggleTaskDone, removeTask, editTask }: Tasks
 
   const confirmTitle = () => {
     setNewTaskTitle(newTaskTitle)
-    if (idEditing !== undefined) editTask(idEditing, newTaskTitle)
+    if (idEditing !== undefined && !verifyTaskTitle(newTaskTitle, tasks)) editTask(idEditing, newTaskTitle)
     setIdEditing(undefined)
   }
 
@@ -114,7 +115,8 @@ export function TasksList({ tasks, toggleTaskDone, removeTask, editTask }: Tasks
               <TouchableOpacity
                 onPress={() => removeTask(item.id)}
                 style={styles.actionIcon}
-
+                disabled={idEditing === item.id}
+                testID={`trash-${index}`}
               //TODO - use onPress (remove task) prop
               >
                 <Image source={trashIcon} style={{ opacity: idEditing === item.id ? 0.2 : 1 }} />

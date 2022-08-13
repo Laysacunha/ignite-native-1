@@ -1,6 +1,7 @@
 import React from 'react';
 import { TodoInput } from '../../components/TodoInput';
 import { fireEvent, render } from '@testing-library/react-native';
+import { verifyTaskTitle } from '../../pages/Home';
 
 let mockedAddTask: jest.Mock;
 
@@ -10,9 +11,9 @@ describe('TodoInput', () => {
   })
 
   it('should be able to submit the input text by "submitEditing" event', async () => {
-    const { getByPlaceholderText } = render(<TodoInput addTask={mockedAddTask} />);
+    const { getByPlaceholderText } = render(<TodoInput addTask={mockedAddTask} verifyTaskTitle={verifyTaskTitle} tasks={[]} />);
     const inputText = getByPlaceholderText('Adicionar novo todo...');
-    
+
     fireEvent.changeText(inputText, 'Primeira task');
     fireEvent(inputText, 'submitEditing');
 
@@ -21,7 +22,7 @@ describe('TodoInput', () => {
   });
 
   it('should be able to submit the input text by addButton', () => {
-    const { getByPlaceholderText, getByTestId } = render(<TodoInput addTask={mockedAddTask} />);
+    const { getByPlaceholderText, getByTestId } = render(<TodoInput addTask={mockedAddTask} verifyTaskTitle={verifyTaskTitle} tasks={[]} />);
     const inputText = getByPlaceholderText('Adicionar novo todo...');
     const addButton = getByTestId('add-new-task-button');
 
@@ -33,9 +34,9 @@ describe('TodoInput', () => {
   });
 
   it('should not be able to add an empty task', () => {
-    const { getByPlaceholderText } = render(<TodoInput addTask={mockedAddTask} />);
+    const { getByPlaceholderText } = render(<TodoInput addTask={mockedAddTask} verifyTaskTitle={verifyTaskTitle} tasks={[]} />);
     const inputText = getByPlaceholderText('Adicionar novo todo...');
-    
+
     fireEvent.changeText(inputText, '');
     fireEvent(inputText, 'submitEditing');
 
